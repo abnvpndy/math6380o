@@ -1,7 +1,6 @@
 from torchvision import datasets
 from torchvision import transforms
 
-
 class TransformedMNIST:
     def __init__(self):
         super(TransformedMNIST, self).__init__()
@@ -29,4 +28,5 @@ class TransformedMNIST:
         return (self.train_dataset)
 
     def get_test(self):
+        return (self.test_dataset)
         return (self.test_dataset)

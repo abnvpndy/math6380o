@@ -1,6 +1,9 @@
 import os
 
+import matplotlib.pyplot as plt
 import torch
+from matplotlib import cm
+from sklearn.manifold import TSNE
 from torch.utils.data.dataset import TensorDataset
 
 """generic class to extract features from pretrained nets"""
@@ -41,3 +44,23 @@ class FeatureExtractor:
             print("Saved features at {}/{}".format(os.getcwd(), filename))
 
         return out_features, out_labels
+
+    def visualize(self, dataloader):
+        # visualize some features using tsne
+        def plot_with_labels(weights, labels, batch_id):
+            plt.cla()
+            X, Y = weights[:, 0], weights[:, 1]
+            for x, y, s in zip(X, Y, labels):
+                c = cm.rainbow(int(255 * s / 9))
+                plt.text(x, y, s, backgroundcolor=c, fontsize=9)
+
+            plt.xlim(X.min(), X.max())
+            plt.ylim(Y.min(), Y.max())
+            plt.title("Visualize features {}", batch_id)
+
+        batch_id, [features, labels] = next(enumerate(dataloader))
+        tsne = TSNE(n_components=2, perplexity=30.0, n_iter=50000, init="pca")
+        plot_only = 500
+        embeddings = tsnet.fit_transform(features.numpy()[:plot_only, :])
+        labels = labels[:plot_only]
+        plot_with_labels(embeddings, labels)
