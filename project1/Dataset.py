@@ -17,10 +17,12 @@ class TransformedMNIST:
         )
         self.train_dataset = datasets.MNIST("/Users/abhinavpandey/PycharmProjects/math6380o/mnist",
                                             train=True,
-                                            transform=dataset_transforms)
+                                            transform=dataset_transforms,
+                                            download=True)
         self.test_dataset = datasets.MNIST("/Users/abhinavpandey/PycharmProjects/math6380o/mnist",
                                            train=False,
-                                           transform=dataset_transforms)
+                                           transform=dataset_transforms,
+                                           download=True)
 
     # now we will define specific functions for different pretrained convnets that we want to use
 
@@ -28,5 +30,4 @@ class TransformedMNIST:
         return (self.train_dataset)
 
     def get_test(self):
-        return (self.test_dataset)
         return (self.test_dataset)

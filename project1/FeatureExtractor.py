@@ -1,9 +1,7 @@
 import os
+from time import time
 
-import matplotlib.pyplot as plt
 import torch
-from matplotlib import cm
-from sklearn.manifold import TSNE
 from torch.utils.data.dataset import TensorDataset
 
 """generic class to extract features from pretrained nets"""
@@ -16,14 +14,20 @@ class FeatureExtractor:
         for param in self.model.parameters():
             param.requires_grad = False
 
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     def features(self, dataloader, save_to_disk=True, train=True):
         feat_coll = []
         label_coll = []
         for batch_id, [features, labels] in enumerate(dataloader):
             # sample is a list with the first element corresponding to the images
             print("Batch {}, features shape: {}, labels shape: {}".format(batch_id, features.shape, labels.shape))
+            features = features.to(self.device)
+            labels = labels.to(self.device)
+            t1 = time()
             out = self.model(features)
-            print("Output shape: {}".format(out.shape))
+            t2 = time()
+            print("Output shape: {}, Time taken: {}".format(out.shape, t2 - t1))
             feat_coll.append(out)
             label_coll.append(labels)
 
@@ -45,22 +49,3 @@ class FeatureExtractor:
 
         return out_features, out_labels
 
-    def visualize(self, dataloader):
-        # visualize some features using tsne
-        def plot_with_labels(weights, labels, batch_id):
-            plt.cla()
-            X, Y = weights[:, 0], weights[:, 1]
-            for x, y, s in zip(X, Y, labels):
-                c = cm.rainbow(int(255 * s / 9))
-                plt.text(x, y, s, backgroundcolor=c, fontsize=9)
-
-            plt.xlim(X.min(), X.max())
-            plt.ylim(Y.min(), Y.max())
-            plt.title("Visualize features {}", batch_id)
-
-        batch_id, [features, labels] = next(enumerate(dataloader))
-        tsne = TSNE(n_components=2, perplexity=30.0, n_iter=50000, init="pca")
-        plot_only = 500
-        embeddings = tsnet.fit_transform(features.numpy()[:plot_only, :])
-        labels = labels[:plot_only]
-        plot_with_labels(embeddings, labels)
