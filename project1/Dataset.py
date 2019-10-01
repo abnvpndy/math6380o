@@ -1,5 +1,8 @@
+import os
+
 from torchvision import datasets
 from torchvision import transforms
+
 
 class TransformedMNIST:
     def __init__(self):
@@ -15,11 +18,11 @@ class TransformedMNIST:
                 normalize
             ]
         )
-        self.train_dataset = datasets.MNIST("/Users/abhinavpandey/PycharmProjects/math6380o/mnist",
+        self.train_dataset = datasets.MNIST(os.getcwd() + "/mnist",
                                             train=True,
                                             transform=dataset_transforms,
                                             download=True)
-        self.test_dataset = datasets.MNIST("/Users/abhinavpandey/PycharmProjects/math6380o/mnist",
+        self.test_dataset = datasets.MNIST(os.getcwd() + "/mnist",
                                            train=False,
                                            transform=dataset_transforms,
                                            download=True)
