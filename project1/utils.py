@@ -10,12 +10,10 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
 
-import project1
 from project1.ConvNetMods import alexnetmod, vgg16mod, resnetmod
 from project1.Dataset import TransformedMNIST
 from project1.FeatureExtractor import FeatureExtractor
 
-project1.ConvNetMods.alexnetmod
 
 def visualize_tsne(dataloader):
     batch_id, [features, labels] = next(enumerate(dataloader))
@@ -98,8 +96,11 @@ def scattering_transform_mnist(save_to_disk=True, train=True):
 
     # construct the scattering object
     scattering = Scattering2D(J=2, shape=(28, 28))
-    dataloader = DataLoader(mnist_train if train else mnist_test, batch_size=1000)
+    dataloader = DataLoader(mnist_train if train else mnist_test, batch_size=10)
 
     print("Running scattering transform")
     extractor = FeatureExtractor(scattering)
-    out_features, out_labels = extractor.features(dataloader, save_to_disk=save_to_disk, train=train)
+    out_features, out_labels = extractor.features(dataloader,
+                                                  save_to_disk=save_to_disk,
+                                                  train=train,
+                                                  flatten_config={"start_dim": 2})

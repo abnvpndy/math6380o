@@ -29,7 +29,7 @@ class FeatureExtractor:
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    def features(self, dataloader, save_to_disk=True, train=True):
+    def features(self, dataloader, save_to_disk=True, train=True, flatten_config=None):
         feat_coll = []
         label_coll = []
         for batch_id, [features, labels] in enumerate(dataloader):
@@ -41,6 +41,21 @@ class FeatureExtractor:
             out = self.model(features)
             t2 = time()
             print("Output shape: {}, Time taken: {}".format(out.shape, t2 - t1))
+
+            if flatten_config is not None:
+                try:
+                    start_dim = flatten_config["start_dim"]
+                except KeyError:
+                    start_dim = 0
+
+                try:
+                    end_dim = flatten_config["end_dim"]
+                except KeyError:
+                    end_dim = -1
+
+                out = torch.flatten(out, start_dim=start_dim, end_dim=end_dim)
+                print("Flattend output shape: {}".format(out.shape))
+
             feat_coll.append(out)
             label_coll.append(labels)
 
