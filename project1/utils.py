@@ -96,7 +96,8 @@ def scattering_transform_mnist(save_to_disk=True, train=True):
 
     # construct the scattering object
     scattering = Scattering2D(J=2, shape=(28, 28))
-    dataloader = DataLoader(mnist_train if train else mnist_test, batch_size=10)
+    batch_size = 1000 if torch.cuda.is_available() else 100
+    dataloader = DataLoader(mnist_train if train else mnist_test, batch_size=batch_size)
 
     print("Running scattering transform")
     extractor = FeatureExtractor(scattering)
