@@ -37,6 +37,7 @@ class FeatureExtractor:
             print("Batch {}, features shape: {}, labels shape: {}".format(batch_id, features.shape, labels.shape))
             features = features.to(self.device)
             labels = labels.to(self.device)
+            self.model = self.model.to(self.device)
             t1 = time()
             out = self.model(features)
             t2 = time()
