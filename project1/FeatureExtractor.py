@@ -10,9 +10,22 @@ from torch.utils.data.dataset import TensorDataset
 class FeatureExtractor:
     def __init__(self, model):
         self.model = model
-        self.model.eval()
-        for param in self.model.parameters():
-            param.requires_grad = False
+        try:
+            self.model.eval()
+        except AttributeError:
+            if self.model.__class__.__name__ in "Scattering2D":
+                pass
+            else:
+                raise
+
+        try:
+            for param in self.model.parameters():
+                param.requires_grad: bool = False
+        except AttributeError:
+            if self.model.__class__.__name__ in "Scattering2D":
+                pass
+            else:
+                raise
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -48,4 +61,3 @@ class FeatureExtractor:
             print("Saved features at {}/{}".format(os.getcwd(), filename))
 
         return out_features, out_labels
-

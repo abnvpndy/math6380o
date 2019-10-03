@@ -1,14 +1,21 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from kymatio import Scattering2D
 from matplotlib import cm
 from sklearn.manifold import TSNE
 from torch.utils.data import DataLoader
+from torchvision import datasets
+from torchvision import transforms
 
+import project1
 from project1.ConvNetMods import alexnetmod, vgg16mod, resnetmod
 from project1.Dataset import TransformedMNIST
 from project1.FeatureExtractor import FeatureExtractor
 
+project1.ConvNetMods.alexnetmod
 
 def visualize_tsne(dataloader):
     batch_id, [features, labels] = next(enumerate(dataloader))
@@ -75,3 +82,24 @@ def extract_mnist_features(ignore=[], save_to_disk=True, train=True):
         dataloader = DataLoader(dataset, batch_size=batch_size[name], num_workers=2)
 
         _ = extractor.features(dataloader, save_to_disk=save_to_disk, train=train)
+
+
+def scattering_transform_mnist(save_to_disk=True, train=True):
+    # here we want untransformed mnist data
+    transform = transforms.Compose([transforms.ToTensor()])
+    mnist_train = datasets.MNIST(os.getcwd() + "/mnist",
+                                 train=True,
+                                 transform=transform,
+                                 download=True)
+    mnist_test = datasets.MNIST(os.getcwd() + "/mnist",
+                                train=False,
+                                transform=transform,
+                                download=True)
+
+    # construct the scattering object
+    scattering = Scattering2D(J=2, shape=(28, 28))
+    dataloader = DataLoader(mnist_train if train else mnist_test, batch_size=1000)
+
+    print("Running scattering transform")
+    extractor = FeatureExtractor(scattering)
+    out_features, out_labels = extractor.features(dataloader, save_to_disk=save_to_disk, train=train)
