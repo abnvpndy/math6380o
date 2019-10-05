@@ -3,9 +3,15 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from joblib import dump, load
 from kymatio import Scattering2D
 from matplotlib import cm
+from sklearn import preprocessing
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import SGDClassifier
 from sklearn.manifold import TSNE
+from sklearn.model_selection import GridSearchCV
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
@@ -110,10 +116,128 @@ def scattering_transform_mnist(save_to_disk=True, train=True):
                                                   train=train,
                                                   flatten_config={"start_dim": 2})
 
+
+def get_dataset_dir():
+    if "abnv" in os.environ["COMPUTERNAME"]:
+        print("going gooooooood!!!!!")
+        dataset_dir = "/Users/abhinavpandey/OneDrive/OneDrive - HKUST Connect/math6380o/project1/"
+    else:
+        print("going wrong!!!! abort abort abort!!!")
+        dataset_dir = "~/math6380/project1/"
+        if not os.path.exists(dataset_dir):
+            os.makedirs(dataset_dir)
+
+    return dataset_dir
+
+
+def train_datasets_filenames():
+    dataset_dir = get_dataset_dir()
+
+    return {
+        "alexnet": dataset_dir + "train_alexnetmod_dataset.pt",
+        "vgg16": dataset_dir + "train_vgg16mod_dataset.pt",
+        "resnet": dataset_dir + "train_resnetmod_dataset.pt",
+        "scattering": dataset_dir + "train_Scattering2D_dataset.pt"
+    }
+
+
+def test_datasets_filenames():
+    dataset_dir = get_dataset_dir()
+
+    return {
+        "alexnet": dataset_dir + "test_alexnetmod_dataset.pt",
+        "vgg16": dataset_dir + "test_vgg16mod_dataset.pt",
+        "resnet": dataset_dir + "test_resnetmod_dataset.pt",
+        "scattering": dataset_dir + "test_Scattering2D_dataset.pt"
+    }
+
+
+def get_stored_dataset(dataset, train=True):
+    datasets = train_datasets_filenames() if train else test_datasets_filenames()
+    to_load = datasets[dataset]
+    loaded_dataset = torch.load(to_load)
+    features = loaded_dataset[:][0]
+    labels = loaded_dataset[:][1]
+
+    if dataset == "scattering":
+        features = torch.flatten(features, start_dim=1)
+
+    return features, labels
+
+
 # which sklearn models shoulud I train on?
 # 1. Logistic regression
 # 2. Random Forests
 # 3. Gradient Boosting Trees
-# 4. SVM (maybe, although I am not too inclined towards this)
-# def train_classifiers():
-# this isn't quite what i wanted to do
+def train_classifier(classifier_to_train, dataset="alexnet", cv=False, save_to_disk=True):
+    # build a pipeline wih the estimators that we need
+    # first we need to scale and center the data
+    log_reg = SGDClassifier(
+        loss="log",
+        penalty="elasticnet",
+        tol=0.1,
+        max_iter=1000,
+        eta0=0.1,
+        verbose=5
+    )
+
+    rf = RandomForestClassifier(
+        n_estimators=100,
+        verbose=5
+    )
+
+    gbt = GradientBoostingClassifier(
+        n_estimators=100,
+        learning_rate=0.1,
+        verbose=5
+    )
+
+    classifiers = {"log_reg": log_reg, "random_forest": rf, "grad_boost": gbt}
+
+    # param grid for cross validation
+    param_grid = dict()
+    param_grid["log_reg"] = {"learning_rate": ["optimal", "invscaling"]}
+    param_grid["random_forest"] = {"n_estimators": [10, 100, 500]}
+    param_grid["grad_boost"] = {
+        "n_estimators": [10, 100, 500],
+        "learning_rate": [0.1, 1],
+        "subsample": [1.0, 0.5]
+    }
+
+    #  declare the standard scaler
+    scaler = preprocessing.StandardScaler()
+
+    classifier = classifiers[classifier_to_train]
+    train_features, train_labels = get_stored_dataset(dataset, train=True)
+    train_features = train_features.numpy()
+    train_labels = train_labels.numpy()
+    scaler.fit(train_features)
+
+    classifier_to_fit = classifier if not cv else GridSearchCV(classifier, param_grid[classifier_to_train], verbose=5)
+
+    classifier_to_fit.fit(scaler.transform(train_features), train_labels)
+
+    if save_to_disk:
+        filename = "{}_{}_{}.joblib".format(classifier_to_train, "cv" if cv else "nocv", dataset)
+        dump(classifier_to_fit, get_dataset_dir() + filename)
+
+    return classifier_to_fit
+
+
+def test_classifier(classifier_to_test, dataset=["alexnet"], cv=False, load_from_disk=True):
+    dataset_dir = get_dataset_dir()
+    filename = "{}_{}_{}.joblib".format(classifier_to_test, "cv" if cv else "nocv", dataset)
+    classifier = load(dataset_dir + filename)
+
+    # stop doing this and change to use pipeline later!
+    train_features, _ = get_stored_dataset(dataset, train=True)
+    train_features = train_features.numpy()
+    scaler = preprocessing.StandardScaler()
+    scaler.fit(train_features)
+
+    test_features, _ = get_stored_dataset(dataset, train=False)
+    test_features = test_features.numpy()
+
+    preds = classifier.predict(scaler.transform(test_features))
+
+    return preds
