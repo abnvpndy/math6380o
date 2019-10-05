@@ -14,6 +14,10 @@ from project1.ConvNetMods import alexnetmod, vgg16mod, resnetmod
 from project1.Dataset import TransformedMNIST
 from project1.FeatureExtractor import FeatureExtractor
 
+if torch.cuda.is_available():
+    pass
+else:
+    pass
 
 def visualize_tsne(dataloader):
     batch_id, [features, labels] = next(enumerate(dataloader))
@@ -105,3 +109,11 @@ def scattering_transform_mnist(save_to_disk=True, train=True):
                                                   save_to_disk=save_to_disk,
                                                   train=train,
                                                   flatten_config={"start_dim": 2})
+
+# which sklearn models shoulud I train on?
+# 1. Logistic regression
+# 2. Random Forests
+# 3. Gradient Boosting Trees
+# 4. SVM (maybe, although I am not too inclined towards this)
+# def train_classifiers():
+# this isn't quite what i wanted to do

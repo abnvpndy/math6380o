@@ -32,16 +32,30 @@ class FeatureExtractor:
     def features(self, dataloader, save_to_disk=True, train=True, flatten_config=None):
         feat_coll = []
         label_coll = []
+
+        # only need to do this once before the loop starts
+        # should I move the model back to CPU after this?
+        try:
+            self.model = self.model.to(self.device)
+        except AttributeError:
+            pass
+
         for batch_id, [features, labels] in enumerate(dataloader):
             # sample is a list with the first element corresponding to the images
             print("Batch {}, features shape: {}, labels shape: {}".format(batch_id, features.shape, labels.shape))
             features = features.to(self.device)
             labels = labels.to(self.device)
-            self.model = self.model.to(self.device)
+
             t1 = time()
             out = self.model(features)
             t2 = time()
             print("Output shape: {}, Time taken: {}".format(out.shape, t2 - t1))
+
+            # move output, features and labels back to the CPU to prevent a memory leak and release memory from GPU
+            out = out.to("cpu")
+            features = features.to("cpu")
+            # do not need to move labels to GPU because we are not doing any computation on them
+            # labels = labels.to("cpu")
 
             if flatten_config is not None:
                 try:
