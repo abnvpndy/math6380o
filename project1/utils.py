@@ -119,10 +119,10 @@ def scattering_transform_mnist(save_to_disk=True, train=True):
 
 def get_dataset_dir():
     if "abnv" in os.environ["COMPUTERNAME"]:
-        print("going gooooooood!!!!!")
+        print("reading from local directory")
         dataset_dir = "/Users/abhinavpandey/OneDrive/OneDrive - HKUST Connect/math6380o/project1/"
     else:
-        print("going wrong!!!! abort abort abort!!!")
+        print("not my computer, probably need to save anew")
         dataset_dir = "~/math6380/project1/"
         if not os.path.exists(dataset_dir):
             os.makedirs(dataset_dir)
