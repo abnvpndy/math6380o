@@ -177,6 +177,13 @@ def get_stored_dataset(dataset, train=True):
     return features, labels
 
 
+def get_stored_model(model_name, dataset, cv=False):
+    dataset_dir = get_dataset_dir()
+    filename = "{}_{}_{}.joblib".format(model_name, "cv" if cv else "nocv", dataset)
+    classifier = load(dataset_dir + filename)
+
+    return classifier
+
 # which sklearn models shoulud I train on?
 # 1. Logistic regression
 # 2. Random Forests
