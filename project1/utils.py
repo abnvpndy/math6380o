@@ -25,17 +25,17 @@ if torch.cuda.is_available():
 else:
     pass
 
-def visualize_tsne(dataloader):
-    batch_id, [features, labels] = next(enumerate(dataloader))
+
+def visualize_tsne(features, labels):
     tsne = TSNE(n_components=2, perplexity=30.0, n_iter=50000, init="pca")
     plot_only = 500
     embeddings = tsne.fit_transform(features.numpy()[:plot_only, :])
     labels = labels[:plot_only]
-    plot_with_labels(embeddings, labels, batch_id)
+    plot_with_labels(embeddings, labels)
 
 
 # visualize some features using tsne
-def plot_with_labels(weights, labels, batch_id):
+def plot_with_labels(weights, labels):
     plt.cla()
     if type(labels[0]) == torch.Tensor:
         labels_plt = [x.item() for x in labels]
@@ -49,7 +49,7 @@ def plot_with_labels(weights, labels, batch_id):
 
     plt.xlim(X.min(), X.max())
     plt.ylim(Y.min(), Y.max())
-    plt.title("Visualize features {}".format(batch_id))
+    plt.title("Visualize features")
 
 
 def imshow(inp, title=None, normalize=True):
@@ -117,8 +117,8 @@ def scattering_transform_mnist(save_to_disk=True, train=True):
                                                   flatten_config={"start_dim": 2})
 
 
-def get_dataset_dir():
-    if "abnv" in os.environ["COMPUTERNAME"]:
+def get_dataset_dir(use_default=True):
+    if use_default or "abnv" in os.environ["COMPUTERNAME"]:
         print("reading from local directory")
         dataset_dir = "/Users/abhinavpandey/OneDrive/OneDrive - HKUST Connect/math6380o/project1/"
     else:
@@ -141,6 +141,12 @@ def train_datasets_filenames():
     }
 
 
+def get_train_dataset_filename(dataset_name):
+    all_filenames = train_datasets_filenames()
+
+    return all_filenames[dataset_name]
+
+
 def test_datasets_filenames():
     dataset_dir = get_dataset_dir()
 
@@ -150,6 +156,12 @@ def test_datasets_filenames():
         "resnet": dataset_dir + "test_resnetmod_dataset.pt",
         "scattering": dataset_dir + "test_Scattering2D_dataset.pt"
     }
+
+
+def get_test_dataset_filename(dataset_name):
+    all_filenames = test_datasets_filenames()
+
+    return all_filenames[dataset_name]
 
 
 def get_stored_dataset(dataset, train=True):
