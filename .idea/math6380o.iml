@@ -5,10 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/project1/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/mnist" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.7 (math6380o)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-  <component name="TestRunnerService">
-    <option name="PROJECT_TEST_RUNNER" value="Unittests" />
   </component>
 </module>
